@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Chirp;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class ChirpController extends Controller
 {
+    use AuthorizesRequests;
+
     /**
      * Display a listing of the resource.
      */
@@ -48,9 +51,7 @@ class ChirpController extends Controller
             'message.max' => 'WTF?! This is chirp, not a bible. Save some words!',
         ]);
 
-        Chirp::create([
-            'message' => $validated['message'],
-        ]);
+        auth()->user()->chirps()->create($validated);
 
         return redirect('/')->with('success', 'Chirp created successfully!');
     }
@@ -73,6 +74,8 @@ class ChirpController extends Controller
      */
     public function update(Request $request, Chirp $chirp)
     {
+        $this->authorize('update', $chirp);
+
         if ($request->user()?->cannot('update', $chirp)) {
             abort(403);
         }
