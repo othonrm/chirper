@@ -18,13 +18,15 @@ class Login extends Controller
             'password' => 'required|string|min:8',
         ]);
 
-        Auth::attempt([
-            'email' => $validated['email'],
-            'password' => $validated['password'],
-        ]);
+        if (Auth::attempt($validated, $request->boolean('remember'))) {
+            $request->session()->regenerate();
+            $user = Auth::user();
 
-        $user = Auth::user();
+            return redirect('/')->with('success', "Welcome to Chirper, {$user->name}!");
+        }
 
-        return redirect('/')->with('success', "Welcome to Chirper, {$user->name}!");
+        return back()
+            ->withErrors(['email' => 'Your credentials are probably wrong, try again or just signup.'])
+            ->onlyInput('email');
     }
 }
